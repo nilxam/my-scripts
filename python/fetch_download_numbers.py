@@ -35,9 +35,9 @@ def ask_date(period):
 def fetch_data(period, date):
     # Read string of token_auth
     try:
-        tokenauth_file = open('.piwik_tokenauth')
+        tokenauth_file = open('piwik_tokenauth')
     except IOError as e:
-        print "Cannot found .piwik_tokenauth file\nI/O error({0}): {1}".format(e.errno, e.strerror)
+        print "Cannot found piwik_tokenauth file\nI/O error({0}): {1}".format(e.errno, e.strerror)
         sys.exit(1)
     else:
         tokenauth_param = '&token_auth=' + tokenauth_file.read()
