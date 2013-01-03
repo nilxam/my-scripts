@@ -3,6 +3,8 @@ import urllib2
 import xml.etree.cElementTree as et
 import re
 
+__author__ = 'Max Lin <mlin@suse.com>'
+
 ### Fetch completely xml file ###
 def write_pagetitles_xml(period, date, data):
     date = date.replace(',','-')
