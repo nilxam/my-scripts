@@ -76,7 +76,7 @@ def parse_data(data, pagetitles_file, show_in_screen):
                 print_visits = True
         elif child.tag == 'row' or child.tag == 'subtable':
             parse_data(child, pagetitles_file, show_in_screen)
-        elif child.tag == 'nb_visits' and print_visits == True:
+        elif child.tag == 'nb_hits' and print_visits == True:
             if show_in_screen == True:
                 print child.text.strip()
             pagetitles_file.write(child.text.strip() + '\n')
