@@ -20,9 +20,10 @@ def write_pagetitles_xml(period, date, data):
 
 ### Ask user to input the date ###
 def validation_date(period, begin, end):
-    if not begin:
-        begin = str(date.today())
     if period == 'range':
+        if not end:
+            print 'Please input end date with follows format YYYY-MM-DD!'
+            sys.exit(1)
         if re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", begin) and re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", end):
             return begin + ',' + end
         else:
@@ -89,22 +90,17 @@ def parse_data(data, pagetitles_file, show_in_screen):
 ### Main ###
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate download numbers from PIWIK')
-    parser.add_argument('-p', '--period', dest='period', help='period of data request, by default is day, option: day, month, year, range')
-    parser.add_argument('-b', '--begin', dest='begin', help='first date request, by default is today, format YYYY-MM-DD')
+    parser.add_argument('-p', '--period', dest='period', choices=['day', 'month', 'year', 'range'], default='day', help='period of data request, by default is day')
+    parser.add_argument('-b', '--begin', dest='begin', default=str(date.today()), help='first date request, by default is today, format YYYY-MM-DD')
     parser.add_argument('-e', '--end', dest='end', help='last date request for period is range, format YYYY-MM-DD')
 
     args = parser.parse_args()
 
-    if not args.period:
-        period = 'day'
-    else:
-        period = args.period
-
     filename = None
 
-    query_date = validation_date(period, args.begin, args.end)
+    query_date = validation_date(args.period, args.begin, args.end)
     if query_date != 'fail':
-        filename = fetch_data(period, query_date)
+        filename = fetch_data(args.period, query_date)
     else:
         print 'Please input a valid date with format YYYY-MM-DD!'
         sys.exit(1)
