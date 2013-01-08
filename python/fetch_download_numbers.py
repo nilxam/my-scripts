@@ -1,7 +1,9 @@
+import argparse
 import sys
 import urllib2
 import xml.etree.cElementTree as et
 import re
+from datetime import date, datetime
 
 __author__ = 'Max Lin <mlin@suse.com>'
 
@@ -17,21 +19,21 @@ def write_pagetitles_xml(period, date, data):
     return filename
 
 ### Ask user to input the date ###
-def ask_date(period):
+def validation_date(period, begin, end):
+    if not begin:
+        begin = str(date.today())
     if period == 'range':
-        print 'Please input date range with format YYYY-MM-DD'
-        start  = raw_input('From: ')
-        end = raw_input('End: ')
-        if re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", start) and re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", end):
-            return start + ',' + end
+        if re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", begin) and re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", end):
+            return begin + ',' + end
+        else:
+            return 'fail'
+    elif period == 'day' or period == 'month' or period == 'year':
+        if begin == 'today' or begin == 'yesterday' or re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", begin):
+            return begin
         else:
             return 'fail'
     else:
-        date = raw_input('Please input the date with format YYYY-MM-DD: ')
-        if date == 'today' or date == 'yesterday' or re.match(r"^[0-9]{4}-(1[0-2]|0[1-9])-(3[01]|[12][0-9]|0[1-9])$", date):
-            return date
-        else:
-            return 'fail'
+        return 'fail'
 
 ### Prepare the address and token auth string in order to fetch the data ###
 def fetch_data(period, date):
@@ -85,40 +87,41 @@ def parse_data(data, pagetitles_file, show_in_screen):
             print_visits = False
 
 ### Main ###
-op_list = {1 : 'day', 2 : 'month', 3 : 'year', 4 : 'range', 5 : 'exit'}
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate download numbers from PIWIK')
+    parser.add_argument('-p', '--period', dest='period', help='period of data request, by default is day, option: day, month, year, range')
+    parser.add_argument('-b', '--begin', dest='begin', help='first date request, by default is today, format YYYY-MM-DD')
+    parser.add_argument('-e', '--end', dest='end', help='last date request for period is range, format YYYY-MM-DD')
 
-for k in op_list:
-    print '%s. %s\n' % (k, op_list[k])
+    args = parser.parse_args()
 
-filename = None
-
-while 1:
-    period_ch = input('Choice the date range(1-4) or 5 to exit the program: ')
-
-    if period_ch > 0 and period_ch < 5:
-        date = ask_date(op_list[period_ch])
-        if date != 'fail':
-            filename = fetch_data(op_list[period_ch], date)
-        else:
-            print 'Please input a valid date with format YYYY-MM-DD!'
-        break;
-    elif period_ch == 5:
-        sys.exit();
+    if not args.period:
+        period = 'day'
     else:
-        print 'Please input the value!!'
+        period = args.period
 
-tree = et.ElementTree(file=filename + '.xml')
-tree.getroot()
-root = tree.getroot()
+    filename = None
 
-### Started parsing xml ###
-show_in_screen = False
-show_op = raw_input('Ready parsing the xml data, would you like shows the data in the screen?[Y/N]')
-if show_op[0] == 'Y' or show_op[0] == 'y':
+    date = validation_date(period, args.begin, args.end)
+    if date != 'fail':
+        filename = fetch_data(period, date)
+    else:
+        print 'Please input a valid date with format YYYY-MM-DD!'
+        sys.exit(1)
+
+    tree = et.ElementTree(file=filename + '.xml')
+    tree.getroot()
+    root = tree.getroot()
+
+    ### Started parsing xml ###
+    show_in_screen = False
+    #show_op = raw_input('Ready parsing the xml data, would you like shows the data in the screen?[Y/N]')
+    #if show_op[0] == 'Y' or show_op[0] == 'y':
+    #    show_in_screen = True
     show_in_screen = True
-print 'Start parsing the xml data and store the result to %s.csv ' % filename
-pagetitles_file = open(filename + '.csv','w')
-for child in root:
-    parse_data(child, pagetitles_file, show_in_screen)
-pagetitles_file.close()
-print 'Parse the xml data done!'
+    print 'Start parsing the xml data and store the result to %s.csv ' % filename
+    pagetitles_file = open(filename + '.csv','w')
+    for child in root:
+        parse_data(child, pagetitles_file, show_in_screen)
+    pagetitles_file.close()
+    print 'Parse the xml data done!'
