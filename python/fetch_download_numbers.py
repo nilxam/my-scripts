@@ -118,7 +118,6 @@ if __name__ == '__main__':
     #show_op = raw_input('Ready parsing the xml data, would you like shows the data in the screen?[Y/N]')
     #if show_op[0] == 'Y' or show_op[0] == 'y':
     #    show_in_screen = True
-    show_in_screen = True
     print 'Start parsing the xml data and store the result to %s.csv ' % filename
     pagetitles_file = open(filename + '.csv', 'w')
     for child in root:
