@@ -3,7 +3,7 @@ import sys
 import urllib2
 import xml.etree.cElementTree as et
 import re
-from datetime import date, datetime
+from datetime import date
 
 __author__ = 'Max Lin <mlin@suse.com>'
 
@@ -36,7 +36,7 @@ def validation_date(period, begin, end):
         return 'fail'
 
 ### Prepare the address and token auth string in order to fetch the data ###
-def fetch_data(period, date):
+def fetch_data(period, query_date):
     # Read string of token_auth
     try:
         tokenauth_file = open('piwik_tokenauth')
@@ -50,7 +50,7 @@ def fetch_data(period, date):
     #print tokenauth_param
 
     # software.o.o idSite is 7 in openSUSE piwik
-    period_param = 'method=Actions.getPageTitles&idSite=7&period=' + period + '&date=' + date + '&format=xml&expanded=1'
+    period_param = 'method=Actions.getPageTitles&idSite=7&period=' + period + '&date=' + query_date + '&format=xml&expanded=1'
     # Assembeled post
     post_param = 'http://beans.opensuse.org/piwik/index.php?module=API&' + period_param + tokenauth_param
     # Debugging
@@ -64,7 +64,7 @@ def fetch_data(period, date):
     # Debugging
     #print data
 
-    filename = write_pagetitles_xml(period, date, data)
+    filename = write_pagetitles_xml(period, query_date, data)
     return filename
 
 ### Walk throught the xml file ###
@@ -102,9 +102,9 @@ if __name__ == '__main__':
 
     filename = None
 
-    date = validation_date(period, args.begin, args.end)
-    if date != 'fail':
-        filename = fetch_data(period, date)
+    query_date = validation_date(period, args.begin, args.end)
+    if query_date != 'fail':
+        filename = fetch_data(period, query_date)
     else:
         print 'Please input a valid date with format YYYY-MM-DD!'
         sys.exit(1)
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     #    show_in_screen = True
     show_in_screen = True
     print 'Start parsing the xml data and store the result to %s.csv ' % filename
-    pagetitles_file = open(filename + '.csv','w')
+    pagetitles_file = open(filename + '.csv', 'w')
     for child in root:
         parse_data(child, pagetitles_file, show_in_screen)
     pagetitles_file.close()
